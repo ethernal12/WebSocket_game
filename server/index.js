@@ -7,21 +7,23 @@ const io = require('socket.io')(server, {
     }
 });
 
-let players = {};//{socket: {ime, prii...}}
+let players = {}; //{socketId: {ime, playing...}}
+let usernames = [];
 let matches = [];
 let countMatches = 0;
 
-function createPlayer(ime, socket){
+function createPlayer(ime, socketId) {
     const player = {
         ime: ime,
         playing: false,
         points: 0
     };
-    players[socket] = player;
+    players[socketId] = player;
+    usernames.push(ime);
     return player;
 }
 
-function createMatch(player1, player2){
+function createMatch(player1, player2) {
     countMatches++;
     player1.playing = true;
     player2.playing = true;
@@ -35,54 +37,92 @@ function createMatch(player1, player2){
 }
 
 io.on('connection', (socket) => {
+
     socket.on('_reset', () => {
         console.log("on _reset");
         players = {};
         matches = [];
+        usernames = [];
         socket.emit("_reset", true);
     });
 
     socket.on('_data', () => {
         console.log("on _data");
         socket.emit("_data", {
-            players,matches,countMatches
+            players, matches, countMatches
         });
     });
-    
+
+
     socket.on("signin", (req) => { //req = {ime}
+      console.log(socket.id);
         console.log("on signin");
-        for(let s in players){
-            if(players[s].ime == req.ime){
-                socket.emit("signin", {error: "signin", msg: "Player has allready signin."});
+        for (let s in players ) {
+            // only give an error if the same socketId with the same name
+            if (players[s].ime == req.ime && socket.id == s) {
+                
+                console.log("sign in error");
+                socket.emit("signin", { error: "signin", msg: "Player has allready signin." });
                 return;
             }
-            if(s == socket){
+
+            if (s == socket.id) {
                 console.log("error");
-                socket.emit("signin", {error: "signin", msg: "Player has allready signin, BUT WITH DIFFERENT NAME."});
+                socket.emit("signin", { error: "signin", msg: "Player has allready signin, BUT WITH DIFFERENT NAME." });
                 return;
             }
+            // check if the new name is in the array, than give an error
+            for(let i = 0; i < usernames.length; i++){
+                console.log("name check");
+             
+                if (req.ime == usernames[i]){
+                    
+                    console.log("duplicate name error");
+                    socket.emit("signin", { error: "signin", msg: "This username is allready in use by different client." });
+                    return;
+                                
+                }
+            }
+         
         }
-        const player = createPlayer(req.ime,socket);
+        const player = createPlayer(req.ime, socket.id);
+        
         socket.emit("signin", player);
     });
+
+
     socket.on("signout", (req) => {//req = {ime}
         console.log("on signout");
-        for (const s in players) {
-            if(players[s].ime == req.ime){
+        
+        let signedIn = false; //check if player is NOT signed in
+        for (const s in players) { //check if player is signed in
+            
+            if (players[s].ime == req.ime && socket.id == s) {
+               
                 console.log("signout for");
+                signedIn = true;
                 socket.emit("signout", players[s]);
-                socket.disconnect();
                 delete players[s];
-                break;
             }
+
+
         }
+
+        if (!signedIn) {
+            console.log("signout error");
+            socket.emit("signout", { error: "signout", msg: "Player cannot signout if not signed in." });
+
+        }
+
+
+
     });
     socket.on("match", (req) => {//req = {ime}
         console.log("on match");
 
         let player = null;
         for (const s in players) {
-            if(players[s].ime == req.ime){
+            if (players[s].ime == req.ime) {
                 player = players[s];
                 break;
             }
@@ -90,7 +130,7 @@ io.on('connection', (socket) => {
 
         let player2 = null;
         for (const s in players) {
-            if(players[s].ime != req.ime && !players[s].playing){
+            if (players[s].ime != req.ime && !players[s].playing) {
                 player2 = players[s];
                 break;
             }
