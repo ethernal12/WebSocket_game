@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
 
 
     socket.on("signin", (req) => { //req = {ime}
-      console.log(socket.id + " socket id");
+      console.log(socket.id);
         console.log("on signin");
         for (let s in players ) {
             // only give an error if the same socketId with the same name
