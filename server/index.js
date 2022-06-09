@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
     socket.on('_data', () => {
         console.log("on _data");
         socket.emit("_data", {
-            players, matches, countMatches, usernames
+            players, matches, countMatches
         });
     });
 
@@ -120,26 +120,43 @@ io.on('connection', (socket) => {
     socket.on("match", (req) => {//req = {ime}
         console.log("on match");
 
-        let player = null;
+        let player1 = null;
         for (const s in players) {
             if (players[s].ime == req.ime) {
-                player = players[s];
+                console.log("player 1 ok");
+                player1 = players[s];
                 break;
             }
         }
 
         let player2 = null;
+        let playerFree = false;
         for (const s in players) {
-            if (players[s].ime != req.ime && !players[s].playing) {
+            if (players[s].ime != req.ime && players[s].playing) {
+                console.log("no free player");  
+                socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });            
+                break;
+            }
+
+            if (players[s].ime != req.ime && !players[s].playing) { 
+                console.log("free player");            
                 player2 = players[s];
+                playerFree = true;
                 break;
             }
         }
+        if (playerFree) {
+            console.log("free player");
+            const match = createMatch(player1, player2);
+            matches.push(match);
+            socket.emit("match", match);
 
-        const match = createMatch(player1, player2);
-        matches.push(match);
+        }
+        
+        
 
     })
+
 })
 
 server.listen(3000, () => {

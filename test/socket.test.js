@@ -13,8 +13,6 @@ function createClient2() {
     return client;
 }
 
-
-
 // describe("on connection", () => {
 //     it("should connect client 1", (done) => {
 //         client = createClient();
@@ -41,31 +39,80 @@ function createClient2() {
 
 
 // });
-describe("on reset", () => {
+describe("on signin and on reset", () => {
 
-    it("should reset", (done) => {
+    it("should signin players, create a match and reset data", (done) => {
+
+        const req = {
+            ime: "abc"
+        };
+    
         client = createClient();
 
-        let count = 0;
-        client.on('_reset', (res) => {
-            console.log(res);
-            count++;
-            if(count == 1){
-                client.emit("_data");
-            }           
-          
+        client.on("signin", (res) => {
+            client2.emit("signin", req2);
         });
+        client.emit("signin", req);
+    
+    
+        const req2 = {
+            ime: "def"
+        }
+    
+        client2 = createClient2();
+
+        client2.on("signin", (res) => {
+            client2.emit("match", req);
+        });
+    
+    
+    
+        client2.on("match", (res) => {
+            client2.emit("_data");
+            
+        });
+    
+        client2.on("_data", res => {
+            assert.equal(res.players[client.id].ime, req.ime, "Must be equal first players name");
+            assert.equal(res.players[client2.id].ime, req2.ime, "Must be equal second players name");
+            console.log(res.matches["match"]);
+            // assert.equal(res.matches, [], "Must be empty");
+            // assert.equal(res.countMatches, 0, "Must be zero");
+            // assert.equal(res.usernames, [], "Must be empty");   
+            done();
+            });
+   
+//    client2.on("_data", res => {
+//         console.log(res.players);
+//         done();
+//         });
+
+//     client2.emit("_data");
+
+
+
+        // client = createClient();
+
+        // let count = 0;
+        // client.on('_reset', (res) => {
+        //     console.log(res);
+        //     count++;
+        //     if(count == 1){
+        //         client.emit("_data");
+        //     }           
+          
+        // });
         
 
-        client.on("_data", res => {
-            assert.deepEqual(res.players, {}, "Must be empty");
-            assert.deepEqual(res.matches, [], "Must be empty");
-            assert.equal(res.countMatches, 0, "Must be zero");
-            assert.deepEqual(res.usernames, [], "Must be empty");           
-            done();
-        });
+        // client.on("_data", res => {
+        //     assert.deepEqual(res.players, {}, "Must be empty");
+        //     assert.deepEqual(res.matches, [], "Must be empty");
+        //     assert.equal(res.countMatches, 0, "Must be zero");
+        //     assert.deepEqual(res.usernames, [], "Must be empty");           
+        //     done();
+        // });
        
-        client.emit("_reset");
+        // client.emit("_reset");
     })
 
 });
