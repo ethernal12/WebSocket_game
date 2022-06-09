@@ -129,6 +129,7 @@ describe("on signin and on reset", () => {
         client.on("_data", res => {
             
             assert.equal(res.players[client.id].ime, req.ime, "Should equal to req name");
+            assert(!res.players[client.id].playing, "Should equal to false");
             done();
 
         })
@@ -329,13 +330,9 @@ describe("on signout", () => {
         }
         const client = createClient();
 
-
-
         client.on("signin", (res) => {
 
             client.emit("signout", req2);
-
-
 
         })
         client.on("signout", (res) => {
@@ -345,8 +342,6 @@ describe("on signout", () => {
             done();
 
         })
-
-
 
         client.emit("signin", req);
 
