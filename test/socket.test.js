@@ -42,78 +42,87 @@ function createClient2() {
 describe("on signin and on reset", () => {
 
     it("should signin players, create a match and reset data", (done) => {
-
+        // player1 name
         const req = {
             ime: "abc"
         };
-    
-        client = createClient();
+        // player2 name
+        const req2 = {
+            ime: "def"
+        }
+     
+        let countMatches = null;
 
+        // create clients
+        const client = createClient();
+        const client2 = createClient2();
+        const client3 = createClient2();
+
+        //get initial countMatches number for testing
+        client.on("_data", (res) => {
+            countMatches = res.countMatches
+            
+          
+        })
+        client.emit("_data");
+
+        // sign in both players
         client.on("signin", (res) => {
             client2.emit("signin", req2);
         });
         client.emit("signin", req);
-    
-    
-        const req2 = {
-            ime: "def"
-        }
-    
-        client2 = createClient2();
+
+        
 
         client2.on("signin", (res) => {
+         
             client2.emit("match", req);
         });
     
-    
+        //create a match between player1 & player2
     
         client2.on("match", (res) => {
+           
             client2.emit("_data");
             
         });
-    
+        //test _data populate
         client2.on("_data", res => {
-            assert.equal(res.players[client.id].ime, req.ime, "Must be equal first players name");
-            assert.equal(res.players[client2.id].ime, req2.ime, "Must be equal second players name");
-            console.log(res.matches["match"]);
-            // assert.equal(res.matches, [], "Must be empty");
-            // assert.equal(res.countMatches, 0, "Must be zero");
-            // assert.equal(res.usernames, [], "Must be empty");   
-            done();
-            });
-   
-//    client2.on("_data", res => {
-//         console.log(res.players);
-//         done();
-//         });
-
-//     client2.emit("_data");
-
-
-
-        // client = createClient();
-
-        // let count = 0;
-        // client.on('_reset', (res) => {
-        //     console.log(res);
-        //     count++;
-        //     if(count == 1){
-        //         client.emit("_data");
-        //     }           
-          
-        // });
+     
+            assert.equal(res.matches[0].player1.ime,req.ime, "Must be equal to first players name");
+            assert(res.matches[0].player1.playing, "Playing must be true");
+            
+            assert.equal(res.matches[0].player2.ime,req2.ime, "Must be equal to second players name");
+            assert(res.matches[0].player2.playing, "Playing must be true");
+            
+            assert.equal(res.countMatches, countMatches + 1, "Must equal to initial match number + 1");
+            assert.equal(res.usernames[0], req.ime, "The usernames first string should equal players1 name");
+            assert.equal(res.usernames[1], req2.ime, "The usernames second string should equal players2 name");           
+            // reset all data
+            
+            client3.emit("_reset"); 
+                   
+        });
         
 
-        // client.on("_data", res => {
-        //     assert.deepEqual(res.players, {}, "Must be empty");
-        //     assert.deepEqual(res.matches, [], "Must be empty");
-        //     assert.equal(res.countMatches, 0, "Must be zero");
-        //     assert.deepEqual(res.usernames, [], "Must be empty");           
-        //     done();
-        // });
+        client3.on('_reset', (res) => {
+  
+            client3.emit("_data");
+          
+        });
+        
+        //test reseted data
+        client3.on("_data", res => {
+          
+            assert.deepEqual(res.players, {}, "Must be empty");
+            assert.deepEqual(res.matches, [], "Must be empty");
+            assert.equal(res.countMatches, 0, "Must be zero");
+            assert.deepEqual(res.usernames, [], "Must be empty");           
+            done();
+        });
        
-        // client.emit("_reset");
-    })
+         
+     })
 
 });
 
@@ -128,7 +137,7 @@ describe("on signin and on reset", () => {
 //             assert.equal(res.ime, req.ime);
 //             assert.equal(res.points, 0);
 //             assert(!res.playing);
-//             done();
+//             done()
 //         })
 //         client.emit("signin", req);
 

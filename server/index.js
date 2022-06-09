@@ -43,13 +43,14 @@ io.on('connection', (socket) => {
         players = {};
         matches = [];
         usernames = [];
+        countMatches = 0;
         socket.emit("_reset", true);
     });
 
     socket.on('_data', () => {
         console.log("on _data");
         socket.emit("_data", {
-            players, matches, countMatches
+            players, matches, countMatches, usernames
         });
     });
 
