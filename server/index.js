@@ -56,12 +56,12 @@ io.on('connection', (socket) => {
 
 
     socket.on("signin", (req) => { //req = {ime}
-      console.log(socket.id);
+        console.log(socket.id);
         console.log("on signin");
-        for (let s in players ) {
+        for (let s in players) {
             // only give an error if the same socketId with the same name
             if (players[s].ime == req.ime && socket.id == s) {
-                
+
                 console.log("sign in error");
                 socket.emit("signin", { error: "signin", msg: "Player has allready signin." });
                 return;
@@ -73,37 +73,46 @@ io.on('connection', (socket) => {
                 return;
             }
             // check if the new name is in the array, than give an error
-            for(let i = 0; i < usernames.length; i++){
+            for (let i = 0; i < usernames.length; i++) {
                 console.log("name check");
-             
-                if (req.ime == usernames[i]){
-                    
+
+                if (req.ime == usernames[i]) {
+
                     console.log("duplicate name error");
                     socket.emit("signin", { error: "signin", msg: "This username is allready in use by different client." });
                     return;
-                                
+
                 }
             }
-         
+
         }
         const player = createPlayer(req.ime, socket.id);
-        
+
         socket.emit("signin", player);
     });
 
 
     socket.on("signout", (req) => {//req = {ime}
         console.log("on signout");
-        
+
         let signedIn = false; //check if player is NOT signed in
         for (const s in players) { //check if player is signed in
-            
+
             if (players[s].ime == req.ime && socket.id == s) {
-               
+
                 console.log("signout for");
                 signedIn = true;
                 socket.emit("signout", players[s]);
                 delete players[s];
+                //
+                for (var i = usernames.length - 1; i >= 0; i--) {
+                    if (usernames[i] === req.ime) {
+                        console.log("found the username and deleted");
+                        usernames.splice(i, 1);
+                        break;
+                    }
+                }
+
             }
 
 
@@ -134,13 +143,13 @@ io.on('connection', (socket) => {
         let playerFree = false;
         for (const s in players) {
             if (players[s].ime != req.ime && players[s].playing) {
-                console.log("no free player");  
-                socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });            
+                console.log("no free player");
+                socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });
                 break;
             }
 
-            if (players[s].ime != req.ime && !players[s].playing) { 
-                console.log("free player");            
+            if (players[s].ime != req.ime && !players[s].playing) {
+                console.log("free player");
                 player2 = players[s];
                 playerFree = true;
                 break;
@@ -153,8 +162,8 @@ io.on('connection', (socket) => {
             socket.emit("match", match);
 
         }
-        
-        
+
+
 
     })
 

@@ -39,132 +39,135 @@ function createClient2() {
 
 
 // });
-describe("on signin and on reset", () => {
+// describe("on signin and on reset", () => {
 
-    it("should signin players, create a match and reset data", (done) => {
-        // player1 name
-        const req = {
-            ime: "abc"
-        };
-        // player2 name
-        const req2 = {
-            ime: "def"
-        }
+//     it("should signin players, create a match and reset data", (done) => {
+//         // player1 name
+//         const req = {
+//             ime: "abc"
+//         };
+//         // player2 name
+//         const req2 = {
+//             ime: "def"
+//         }
      
-        let countMatches = null;
+//         let countMatches = null;
 
-        // create clients
-        const client = createClient();
-        const client2 = createClient2();
-        const client3 = createClient2();
+//         // create clients
+//         const client = createClient();
+//         const client2 = createClient2();
+//         const client3 = createClient2();
 
-        //get initial countMatches number for testing
-        client.on("_data", (res) => {
-            countMatches = res.countMatches
+//         //get initial countMatches number for testing
+//         client.on("_data", (res) => {
+//             countMatches = res.countMatches
             
           
-        })
-        client.emit("_data");
+//         })
+//         client.emit("_data");
 
-        // sign in both players
-        client.on("signin", (res) => {
-            client2.emit("signin", req2);
-        });
-        client.emit("signin", req);
+//         // sign in both players
+//         client.on("signin", (res) => {
+//             client2.emit("signin", req2);
+//         });
+//         client.emit("signin", req);
 
         
 
-        client2.on("signin", (res) => {
+//         client2.on("signin", (res) => {
          
-            client2.emit("match", req);
-        });
+//             client2.emit("match", req);
+//         });
     
-        //create a match between player1 & player2
+//         //create a match between player1 & player2
     
-        client2.on("match", (res) => {
+//         client2.on("match", (res) => {
            
-            client2.emit("_data");
+//             client2.emit("_data");
             
-        });
-        //test _data populate
-        client2.on("_data", res => {
+//         });
+//         //test _data populate
+//         client2.on("_data", res => {
      
-            assert.equal(res.matches[0].player1.ime,req.ime, "Must be equal to first players name");
-            assert(res.matches[0].player1.playing, "Playing must be true");
+//             assert.equal(res.matches[0].player1.ime,req.ime, "Must be equal to first players name");
+//             assert(res.matches[0].player1.playing, "Playing must be true");
             
-            assert.equal(res.matches[0].player2.ime,req2.ime, "Must be equal to second players name");
-            assert(res.matches[0].player2.playing, "Playing must be true");
+//             assert.equal(res.matches[0].player2.ime,req2.ime, "Must be equal to second players name");
+//             assert(res.matches[0].player2.playing, "Playing must be true");
             
-            assert.equal(res.countMatches, countMatches + 1, "Must equal to initial match number + 1");
-            assert.equal(res.usernames[0], req.ime, "The usernames first string should equal players1 name");
-            assert.equal(res.usernames[1], req2.ime, "The usernames second string should equal players2 name");           
-            // reset all data
+//             assert.equal(res.countMatches, countMatches + 1, "Must equal to initial match number + 1");
+//             assert.equal(res.usernames[0], req.ime, "The usernames first string should equal players1 name");
+//             assert.equal(res.usernames[1], req2.ime, "The usernames second string should equal players2 name");           
+//             // reset all data
             
-            client3.emit("_reset"); 
+//             client3.emit("_reset"); 
                    
-        });
+//         });
         
 
-        client3.on('_reset', (res) => {
+//         client3.on('_reset', (res) => {
   
-            client3.emit("_data");
+//             client3.emit("_data");
           
-        });
+//         });
         
-        //test reseted data
-        client3.on("_data", res => {
+//         //test reseted data
+//         client3.on("_data", res => {
           
-            assert.deepEqual(res.players, {}, "Must be empty");
-            assert.deepEqual(res.matches, [], "Must be empty");
-            assert.equal(res.countMatches, 0, "Must be zero");
-            assert.deepEqual(res.usernames, [], "Must be empty");           
-            done();
-        });
+//             assert.deepEqual(res.players, {}, "Must be empty");
+//             assert.deepEqual(res.matches, [], "Must be empty");
+//             assert.equal(res.countMatches, 0, "Must be zero");
+//             assert.deepEqual(res.usernames, [], "Must be empty");           
+//             done();
+//         });
        
          
-     })
+//      })
 
-});
+//});
 
-//  describe("on signin", () => {
+ describe("on signin", () => {
 
-//     it("Should create player", (done) => {
-//         const req = {
-//             ime: "abc"
-//         }
-//         client = createClient();
-//         client.on("signin", (res) => {
-//             assert.equal(res.ime, req.ime);
-//             assert.equal(res.points, 0);
-//             assert(!res.playing);
-//             done()
-//         })
-//         client.emit("signin", req);
+    it("Should create player", (done) => {
+        const req = {
+            ime: "abc"
+        }
+        client = createClient();
+        client.on("signin", (res) => {
+          client.emit("_data");
+        })
+        client.on("_data", res => {
+            
+            assert.equal(res.players[client.id].ime, req.ime, "Should equal to req name");
+            done();
 
-//     });
+        })
+        client.emit("signin", req);
 
-//     it("Should not create player if already signin", (done) => {
-//         const req = {
-//             ime: "abc"
-//         }
-//         client = createClient();
-//         let count = 0;
-//         client.on("signin", (res) => {
-//             count++;
+    });
 
-//             if (count == 1) {
-//                 client.emit("signin", req);
-//             }
-//             if (count == 2) {
-//                 assert.equal(res.error, "signin");
-//                 assert.equal(res.msg, "Player has allready signin.");
-//                 done();
-//             }
+    // it("Should not create player if already signin", (done) => {
+    //     const req = {
+    //         ime: "abc"
+    //     }
+    //     client = createClient();
+    //     let count = 0;
+    //     client.on("signin", (res) => {
+    //         count++;
 
-//         })
-//         client.emit("signin", req);
+    //         if (count == 1) {
+    //             client.emit("signin", req);
+    //         }
+    //         if (count == 2) {
+    //             assert.equal(res.error, "signin");
+    //             assert.equal(res.msg, "Player has allready signin.");
+    //             done();
+    //         }
 
-//     });
+    //     })
+    //     client.emit("signin", req);
+
+    // });
 
 //     it("Should not create player if different name but same socket", (done) => {
 //         const req1 = {
@@ -219,30 +222,44 @@ describe("on signin and on reset", () => {
 //         client.emit("signin", req);
 
 //     });
-// });
+ });
 
-// describe("on signout", () => {
-//     it("Should be able to signout", (done) => {
-//         const req = {
-//             ime: "er3"
-//         }
-//         client = createClient();
-//         client.on("signin", (res) => {
+describe("on signout", () => {
+    it("Should be able to signout", (done) => {
+        const req = {
+            ime: "er3"
+        }
+        const client = createClient();
+        const client2 = createClient2();
+       
 
-//             client.emit("signout", req);
+        client.on("signin", (res) => {
 
-//         })
-//         client.on("signout", (res) => {
+            client.emit("signout", req);
 
-//             assert.equal(res.ime, req.ime);
-//             assert.equal(res.points, 0);
-//             assert(!res.playing);
-//             done();
+        })
 
-//         })
+        client.on("_data", (res) => {
+        
+        assert.equal(res.players[client.id].ime, req.ime, "On sign must equal to player1 ime")
+        assert(!res.players[client.id].playing,"On signin must equal false")
+        client.emit("signout", req);
+        })
 
-//         client.emit("signin", req);
-//     })
+      client.on("signout", res => {
+        console.log(res);
+        client2.emit("_data");
+      }); 
+      client2.on("_data", (res) => {
+       
+        assert.deepEqual(res.players, {}, "Must be empty");
+        //assert.deepEqual(res.usernames, [], )
+        done();
+
+        })
+
+        client.emit("signin", req);
+    })
 //     it("Should get error if user tries to signout but is not signed-in.", (done) => {
 //         const req = {
 //             ime: "er3"
@@ -291,7 +308,7 @@ describe("on signin and on reset", () => {
 //         })
 
 //         client.emit("signin", req);
-//     });
+    });
 
 
 //     it("Should get error if user uses different name for signout", (done) => {
