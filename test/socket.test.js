@@ -1,120 +1,278 @@
 let io = require('socket.io-client');
 let assert = require('assert');
-const { equal } = require('assert');
+
 
 function createClient() {
     let client = io("ws://localhost:3000");
     client.emit("_reset");
     return client;
 }
+// when creating client2 don`t reset data
+function createClient2() {
+    let client = io("ws://localhost:3000");
+    return client;
+}
 
-describe("on connection", () => {
-    it("should connect", (done) => {
+
+
+// describe("on connection", () => {
+//     it("should connect client 1", (done) => {
+//         client = createClient();
+//         client.on('connect', () => {
+          
+//             assert(client.connected);
+//             client.disconnect();
+//         });
+//         client.on('disconnect', () => {
+//             done();
+//         });
+//     })
+//     it("should connect client 2", (done) => {
+//         client2 = createClient2();
+//         client2.on('connect', () => {
+           
+//             assert(client2.connected);
+//             client2.disconnect();
+//         });
+//         client2.on('disconnect', () => {
+//             done();
+//         });
+//     })
+
+
+// });
+describe("on reset", () => {
+
+    it("should reset", (done) => {
         client = createClient();
-        client.on('connect', () => {
-            assert(client.connected);
-            client.disconnect();
-        });
-        client.on('disconnect', () => {
-            done();
-        });
-    })
 
-
-});
-
-describe("on signin", () => {
-
-    it("Should create player", (done) => {
-        const req = {
-            ime: "abc"
-        }
-        client = createClient();
-        client.on("signin", (res) => {
-            assert.equal(res.ime, req.ime);
-            assert.equal(res.points, 0);
-            assert(!res.playing);
-            done();
-        })
-        client.emit("signin", req);
-        
-    });
-    it("Should not create player if already signin", (done) => {
-        const req = {
-            ime: "abc"
-        }
-        client = createClient();
         let count = 0;
-        client.on("signin", (res) => {
+        client.on('_reset', (res) => {
+            console.log(res);
             count++;
             if(count == 1){
-                client.emit("signin", req);
-            }
-            if(count == 2){
-                assert.equal(res.error, "signin");
-                assert.equal(res.msg, "Player has allready signin.");
-                done();
-            }
-            
-        })
-        client.emit("signin", req);
+                client.emit("_data");
+            }           
+          
+        });
         
-    });
 
-    it("Should not create player if different name but same socket", (done) => {
-        const req1 = {
-            ime: "abc"
-        }
-        const req2 = {
-            ime: "bca"
-        }
-        client = createClient();
-        let count = 0;
-        client.on("signin", (res) => {
-            count++;
-            if(count == 1){
-                client.emit("signin", req2);
-            }
-            if(count == 2){
-                assert.equal(res.error, "signin");
-                assert.equal(res.msg, "Player has allready signin, BUT WITH DIFFERENT NAME.");
-                done();
-            }
-            
-        })
-        client.emit("signin", req1);
+        client.on("_data", res => {
+            assert.deepEqual(res.players, {}, "Must be empty");
+            assert.deepEqual(res.matches, [], "Must be empty");
+            assert.equal(res.countMatches, 0, "Must be zero");
+            assert.deepEqual(res.usernames, [], "Must be empty");           
+            done();
+        });
        
-        
-    });
+        client.emit("_reset");
+    })
+
 });
 
-describe("on signout", () => {
-    it("Should be able to signout", (done) => {
-        const req = {
-            ime: "er3"
-        }
-        client = createClient();
-        client.on("signin", (res) => {
+//  describe("on signin", () => {
 
-            client.emit("signout", req);
+//     it("Should create player", (done) => {
+//         const req = {
+//             ime: "abc"
+//         }
+//         client = createClient();
+//         client.on("signin", (res) => {
+//             assert.equal(res.ime, req.ime);
+//             assert.equal(res.points, 0);
+//             assert(!res.playing);
+//             done();
+//         })
+//         client.emit("signin", req);
 
-        })
-        client.on("signout", (res) => {
-            assert.equal(res.ime, req.ime);
-            assert.equal(res.points, 0);
-            assert(!res.playing);
-            done();
+//     });
 
-        })
+//     it("Should not create player if already signin", (done) => {
+//         const req = {
+//             ime: "abc"
+//         }
+//         client = createClient();
+//         let count = 0;
+//         client.on("signin", (res) => {
+//             count++;
 
-        client.emit("signin", req);
-    })
-    it("Should get error if user has not signin.", () => {});
-    it("Should get error if user has allready signout", () => {});
-    it("Should get error if user uses different name for signout", () => {})
-})
+//             if (count == 1) {
+//                 client.emit("signin", req);
+//             }
+//             if (count == 2) {
+//                 assert.equal(res.error, "signin");
+//                 assert.equal(res.msg, "Player has allready signin.");
+//                 done();
+//             }
 
-describe("on match", () => {
-    it("should be able to get in match", () => {});
-    it("should wait if not free player is available", () => {});
-})
+//         })
+//         client.emit("signin", req);
+
+//     });
+
+//     it("Should not create player if different name but same socket", (done) => {
+//         const req1 = {
+//             ime: "abc"
+//         }
+//         const req2 = {
+//             ime: "bca"
+//         }
+//         client = createClient();
+//         let count = 0;
+//         client.on("signin", (res) => {
+//             count++;
+//             if (count == 1) {
+//                 client.emit("signin", req2);
+//             }
+//             if (count == 2) {
+//                 assert.equal(res.error, "signin");
+//                 assert.equal(res.msg, "Player has allready signin, BUT WITH DIFFERENT NAME.");
+//                 done();
+//             }
+
+//         })
+//         client.emit("signin", req1);
+
+
+//     });
+
+//     it("Should not sign in with different socket with a username that allready exists", (done) => {
+//         const req = {
+//             ime: "abc"
+//         }
+       
+
+//         const client = createClient();
+//         const client2 = createClient2();
+
+
+
+//         client.on("signin", (res) => {
+
+//             client2.emit("signin", req);
+
+//         })
+//         client2.on("signin", (res) => {
+            
+//             assert.equal(res.error, "signin");
+//             assert.equal(res.msg, "This username is allready in use by different client.");
+//             done();
+
+//         })
+
+//         client.emit("signin", req);
+
+//     });
+// });
+
+// describe("on signout", () => {
+//     it("Should be able to signout", (done) => {
+//         const req = {
+//             ime: "er3"
+//         }
+//         client = createClient();
+//         client.on("signin", (res) => {
+
+//             client.emit("signout", req);
+
+//         })
+//         client.on("signout", (res) => {
+
+//             assert.equal(res.ime, req.ime);
+//             assert.equal(res.points, 0);
+//             assert(!res.playing);
+//             done();
+
+//         })
+
+//         client.emit("signin", req);
+//     })
+//     it("Should get error if user tries to signout but is not signed-in.", (done) => {
+//         const req = {
+//             ime: "er3"
+//         }
+//         client = createClient();
+
+//         client.on("signout", (res) => {
+
+//             assert.equal(res.error, "signout");
+//             assert.equal(res.msg, "Player cannot signout if not signed in.");
+//             done();
+
+//         })
+//         client.emit("signout", req);
+
+
+//     });
+//     it("Should get error if user has allready signout", (done) => {
+
+//         const req = {
+//             ime: "er3"
+//         }
+//         client = createClient();
+//         let count = 0;
+//         client.on("signin", (res) => {
+
+//             client.emit("signout", req);
+
+//         })
+//         client.on("signout", (res) => {
+
+//             count++;
+
+//             if (count == 1) {
+//                 client.emit("signout", req);
+
+//             }
+
+//             if (count == 2) {
+
+//                 assert.equal(res.error, "signout");
+//                 assert.equal(res.msg, "Player cannot signout if not signed in.");
+//                 done();
+//             }
+
+//         })
+
+//         client.emit("signin", req);
+//     });
+
+
+//     it("Should get error if user uses different name for signout", (done) => {
+
+//         const req = {
+//             ime: "er3"
+//         }
+//         const req2 = {
+//             ime: "er4"
+//         }
+//         const client = createClient();
+
+
+
+//         client.on("signin", (res) => {
+
+//             client.emit("signout", req2);
+
+
+
+//         })
+//         client.on("signout", (res) => {
+            
+//             assert.equal(res.error, "signout");
+//             assert.equal(res.msg, "Player cannot signout if not signed in.");
+//             done();
+
+//         })
+
+
+
+//         client.emit("signin", req);
+
+//     })
+// })
+
+// describe("on match", () => {
+//     it("should be able to get in match", () => { });
+//     it("should wait if not free player is available", () => { });
+// })
