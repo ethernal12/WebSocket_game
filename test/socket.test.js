@@ -14,7 +14,7 @@ function createClient2() {
 }
 
 describe("on connection", () => {
-    it("should connect client 1", (done) => {
+    it("should connect client ", (done) => {
         client = createClient();
         client.on('connect', () => {
           
@@ -25,17 +25,7 @@ describe("on connection", () => {
             done();
         });
     })
-    it("should connect client 2", (done) => {
-        client2 = createClient2();
-        client2.on('connect', () => {
-           
-            assert(client2.connected);
-            client2.disconnect();
-        });
-        client2.on('disconnect', () => {
-            done();
-        });
-    })
+
 
 
 });

@@ -105,7 +105,7 @@ io.on('connection', (socket) => {
                 socket.emit("signout", players[s]);
                 delete players[s];
                 
-                for (var i = usernames.length - 1; i >= 0; i--) {
+                for (var i = 0; i < usernames.length; i++) {
                     if (usernames[i] === req.ime) {
                         console.log("found the req username and deleted");
                         usernames.splice(i, 1);
