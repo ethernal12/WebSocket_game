@@ -81,9 +81,11 @@ describe("on reset", () => {
 
             assert.equal(res.matches[0].player1.ime, req.ime, "Must be equal to first players name");
             assert(res.matches[0].player1.playing, "Playing must be true");
+            assert.equal(res.matches[0].player1.points, 0, "Must be equal to 0 at start of game");
 
             assert.equal(res.matches[0].player2.ime, req2.ime, "Must be equal to second players name");
             assert(res.matches[0].player2.playing, "Playing must be true");
+            assert.equal(res.matches[0].player2.points, 0, "Must be equal to 0 at start of game");
 
             assert.equal(res.countMatches, countMatches + 1, "Must equal to initial match number + 1");
             assert.equal(res.usernames[0], req.ime, "The usernames first string should equal players1 name");
@@ -241,9 +243,11 @@ describe("on signout", () => {
 
             assert.equal(res.players[client.id].ime, req.ime, "On signin must equal to player1 ime")
             assert(!res.players[client.id].playing, "On signin must equal false")
+            assert.equal(res.players[client.id].points, 0, "Must be equal to 0 at signin");
 
             assert.equal(res.players[client2.id].ime, req2.ime, "On signin must equal to player2 ime")
             assert(!res.players[client2.id].playing, "On signin must equal false")
+            assert.equal(res.players[client2.id].points, 0, "Must be equal to 0 at signin");
 
             client.emit("signout", req);
         })
