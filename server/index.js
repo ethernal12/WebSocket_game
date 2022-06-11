@@ -10,7 +10,7 @@ const io = require('socket.io')(server, {
 let players = {}; //{socketId: {ime, playing...}}
 let usernames = [];
 let matches = [];
-let countMatches = 0;
+
 
 function createPlayer(ime, socketId) {
     const player = {
@@ -24,11 +24,10 @@ function createPlayer(ime, socketId) {
 }
 
 function createMatch(player1, player2) {
-    countMatches++;
+    console.log("create match");
     player1.playing = true;
     player2.playing = true;
     const match = {
-        match: countMatches,
         player1: player1,
         player2: player2
     };
@@ -43,14 +42,13 @@ io.on('connection', (socket) => {
         players = {};
         matches = [];
         usernames = [];
-        countMatches = 0;
         socket.emit("_reset", true);
     });
 
     socket.on('_data', () => {
         console.log("on _data");
         socket.emit("_data", {
-            players, matches, countMatches, usernames
+            players, matches, usernames
         });
     });
 
@@ -69,7 +67,7 @@ io.on('connection', (socket) => {
 
             if (s == socket.id) {
                 console.log("error");
-                socket.emit("signin", { error: "signin", msg: "Player has allready signin, BUT WITH DIFFERENT NAME." });
+                socket.emit("signin", { error: "signin", msg: "Player has allready signin, but with a different name." });
                 return;
             }
             // check if the new name is in the array, than give an error
@@ -104,7 +102,7 @@ io.on('connection', (socket) => {
                 signedIn = true;
                 socket.emit("signout", players[s]);
                 delete players[s];
-                
+
                 for (var i = 0; i < usernames.length; i++) {
                     if (usernames[i] === req.ime) {
                         console.log("found the req username and deleted");
@@ -132,38 +130,41 @@ io.on('connection', (socket) => {
 
         let player1 = null;
         for (const s in players) {
-            if (players[s].ime == req.ime) {
+           
+            if (socket.id == s && players[s].ime == req.ime) {
                 console.log("player 1 ok");
                 player1 = players[s];
                 break;
             }
         }
 
-        let player2 = null;
+        let player2 = undefined;
         let playerFree = false;
         for (const s in players) {
-            if (players[s].ime != req.ime && players[s].playing) {
+           
+            if (socket.id != s && players[s].ime != req.ime && players[s].playing) {
                 console.log("no free player");
                 socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });
                 break;
             }
-
-            if (players[s].ime != req.ime && !players[s].playing) {
-                console.log("free player");
+            if (socket.id != s && players[s].ime != req.ime && !players[s].playing ) {
+                console.log("flag free player");
                 player2 = players[s];
                 playerFree = true;
                 break;
             }
+
         }
+      
+
+
         if (playerFree) {
-            console.log("free player");
+            console.log("free player found, create match");
             const match = createMatch(player1, player2);
-            matches.push(match);
+            //bug, duplicate matches.push() in createMatch()
             socket.emit("match", match);
-
+            return;
         }
-
-
 
     })
 
