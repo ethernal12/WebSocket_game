@@ -28,10 +28,15 @@ function createMatch(player1, player2) {
     player1.playing = true;
     player2.playing = true;
     const match = {
-        player1: player1,
-        player2: player2
-    };
+        
+            player1: player1,
+            player2: player2
+        
+    }
+
+
     matches.push(match);
+    console.log(matches);
     return match;
 }
 
@@ -122,17 +127,16 @@ io.on('connection', (socket) => {
 
         }
 
-
-
     });
     socket.on("match", (req) => {//req = {ime}
         console.log("on match");
 
-        let player1 = null;
+        let player1 = undefined;
         for (const s in players) {
-           
-            if (socket.id == s && players[s].ime == req.ime) {
+            console.log(players[s].ime);
+            if (socket.id == s && players[s].ime == req.ime && !players[s].playing) {
                 console.log("player 1 ok");
+
                 player1 = players[s];
                 break;
             }
@@ -141,29 +145,38 @@ io.on('connection', (socket) => {
         let player2 = undefined;
         let playerFree = false;
         for (const s in players) {
-           
-            if (socket.id != s && players[s].ime != req.ime && players[s].playing) {
-                console.log("no free player");
-                socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });
-                break;
-            }
-            if (socket.id != s && players[s].ime != req.ime && !players[s].playing ) {
-                console.log("flag free player");
-                player2 = players[s];
-                playerFree = true;
-                break;
+            console.log(players[s].ime);
+            if (socket.id != s && players[s].ime != req.ime) {
+                if (players[s].playing) {
+                    console.log(players[s].ime + " not free player");
+
+                }
+                if (!players[s].playing) {
+                    console.log(socket.id);
+                    console.log("player free " + players[s].ime);
+                    player2 = players[s];
+                    playerFree = true;
+                    break;
+                }
+
             }
 
         }
-      
+        
+        if (!playerFree) {
+            console.log("no free player found");
+            socket.emit("match", { error: "match", msg: "No players available for a game. Please wait..." });
+            return;
+
+        }
 
 
         if (playerFree) {
             console.log("free player found, create match");
             const match = createMatch(player1, player2);
-            //bug, duplicate matches.push() in createMatch()
             socket.emit("match", match);
             return;
+
         }
 
     })
