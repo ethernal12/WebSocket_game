@@ -90,8 +90,8 @@ io.on('connection', (socket) => {
 
         }
         const player = createPlayer(req.ime, socket.id);
-
-        socket.emit("signin", player);
+        // signin second response created so I can more easily check that no matches exist before creating a match(without calling _data)
+        socket.emit("signin", player, matches.length);
     });
 
 
