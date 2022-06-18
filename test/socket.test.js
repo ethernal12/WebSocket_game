@@ -414,7 +414,7 @@ describe("on match", () => {
 
 
         // sign in both players
-        client.on("signin", (res) => {
+        client.on("signin", res => {
 
             assert.equal(res.ime, req.ime, "On sign in ime must equal to req.ime");
             assert(!res.playing, "Must equal to false, since player is not in match");
@@ -425,13 +425,13 @@ describe("on match", () => {
 
 
 
-        client2.on("signin", (res, res2) => {
+        client2.on("signin", (res, matchesLength) => {
 
             assert.equal(res.ime, req2.ime, "On sign in ime must equal to req2.ime");
             assert(!res.playing, "Must equal to false, since player is not in match");
             assert.equal(res.points, 0, "Must equal to 0, since player is not in match");
 
-            assert.equal(res2, 0, "Must equal to 0 since no matches exist");
+            assert.equal(matchesLength, 0, "Must equal to 0 since no matches exist");
 
             client2.emit("match", req2);
         });
@@ -440,7 +440,7 @@ describe("on match", () => {
 
         //create a match 
 
-        client2.on("match", (res) => {
+        client2.on("match", res => {
 
             assert.equal(res["player1"].ime, req2.ime);
             assert(res["player1"].playing);
@@ -493,20 +493,20 @@ describe("on match", () => {
 
 
 
-        client.on("signin", (res, res2) => {
+        client.on("signin", (res, matchesLength) => {
 
             assert.equal(res.ime, req.ime, "On sign in ime must equal to req.ime");
             assert(!res.playing, "Must equal to false, since player is not in match");
             assert.equal(res.points, 0, "Must equal to 0, since player is not in match")
 
-            assert.equal(res2, 0, "Must equal to 0 since no matches exist");
+            assert.equal(matchesLength, 0, "Must equal to 0 since no matches exist");
 
             client.emit("match", req);
         });
 
 
 
-        client.on("match", (res) => {
+        client.on("match", res => {
 
             assert.equal(res.error, "match");
             assert.equal(res.msg, "No players available for a game. Please wait...");
@@ -517,7 +517,7 @@ describe("on match", () => {
         })
 
 
-        client2.on("_data", (res) => {
+        client2.on("_data", res => {
             assert.equal(res.matches.length, 0, "Must equal to 0 if there is no match created");
             assert(!res.players[client.id].playing, "Must equal to false, since player is not in a match");
             assert.equal(res.players[client.id].points, 0, "Must equal to 0, since player is not in match");
@@ -553,7 +553,7 @@ describe("on match", () => {
 
         //sign-in first pair of players
 
-        client1.on("signin", (res) => {
+        client1.on("signin", res => {
 
             assert.equal(res.ime, req.ime, "On sign in ime must equal to req.ime");
             assert(!res.playing, "Must equal to false, since player is not in match");
@@ -563,20 +563,20 @@ describe("on match", () => {
 
         });
 
-        client2.on("signin", (res, res2) => {
+        client2.on("signin", (res, matchesLength) => {
 
             assert.equal(res.ime, req2.ime, "On sign in ime must equal to req2.ime");
             assert(!res.playing, "Must equal to false, since player is not in match");
             assert.equal(res.points, 0, "Must equal to 0, since player is not in match");
             //matches exist check
-            assert.equal(res2, 0, "Must equal to 0 since no matches exist");
+            assert.equal(matchesLength, 0, "Must equal to 0 since no matches exist");
 
             client2.emit("match", req2);
         });
 
 
         // create first match
-        client2.on("match", (res) => {
+        client2.on("match", res => {
 
             assert.equal(res["player1"].ime, req2.ime);
             assert(res["player1"].playing);
@@ -589,7 +589,7 @@ describe("on match", () => {
 
 
         });
-        client2.on("_data", (res) => {
+        client2.on("_data", res => {
 
             // first match data testing
             assert.equal(res.matches[0].player1.ime, req2.ime, "Must be equal to players2 name");
@@ -641,7 +641,7 @@ describe("on match", () => {
 
         });
         //create second match
-        client4.on("match", (res) => {
+        client4.on("match", res => {
 
             assert.equal(res["player1"].ime, req4.ime);
             assert(res["player1"].playing);
@@ -653,7 +653,7 @@ describe("on match", () => {
             client4.emit("_data");
         });
 
-        client4.on("_data", (res) => {
+        client4.on("_data", res => {
 
 
             //second match data testing
